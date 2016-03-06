@@ -17,10 +17,7 @@ for i = 1:size(lambdas, 2)
 end
 
 loglog(lambdas, train_error, 'r', lambdas, test_error, 'b');
-title('{\bf Training and Testing Error vs. lambda}')
-xlabel('lambda (1e-5 to 10)')
-ylabel('Mean Squared Error')
-legend('Training Error', 'Testing Error')
+hold on
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Do 5-fold cross-validation
@@ -28,15 +25,24 @@ legend('Training Error', 'Testing Error')
 
 % Partition the data
 folds = cvpartition(y_train, 'KFold', 5);
-cv_error = zeros(size(lambdas, 2));
+cv_error = zeros(size(lambdas, 2), 1);
 for i = 1:size(lambdas, 2)
     lambda_cv_error = zeros(5, 1);
     for j = 1:5
         train_idx = folds.training(j);
         test_idx = folds.test(j);
-        w = ridge_regression(x_train(train_idx, :), y_train(test_idx),...
+        w = ridge_regression(x_train(train_idx, :), y_train(train_idx),...
             lambdas(i));
-        lambda_cv_error(j) = mean((y_train(train_idx) - x_train(test_idx, :) * w).^2);
+        lambda_cv_error(j) = mean((y_train(test_idx) - x_train(test_idx, :) * w).^2);
     end
     cv_error(i) = mean(lambda_cv_error);
 end
+
+[best_lambda, best_idx] = min(cv_error);
+
+line([lambdas(best_idx) lambdas(best_idx)], ylim, 'Color', 'g');
+title('{\bf Training and Testing Error vs. lambda}')
+xlabel('lambda (1e-5 to 10)')
+ylabel('Mean Squared Error')
+legend('Training Error', 'Testing Error', 'Best CV lambda', 'Location',...
+    'northwest')
