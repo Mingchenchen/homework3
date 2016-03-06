@@ -11,8 +11,7 @@ train_error = zeros(size(lambdas));
 
 % Train models using log-scale lambda values
 for i = 1:size(lambdas, 2)
-	%w = ridge_regression(x_train, y_train, lambdas(i));
-    w = ridge(y_train, x_train, lambdas(i), 1);
+	w = ridge_regression(x_train, y_train, lambdas(i));
     train_error(i) = mean((y_train - x_train * w).^2);
     test_error(i) = mean((y_test - x_test * w).^2);
 end
@@ -28,15 +27,16 @@ legend('Training Error', 'Testing Error')
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Partition the data
-indices = randperm(size(x_train, 1));
-fold_1_x = x_train(1:49);
-fold_2_x = x_train(50:98);
-fold_3_x = x_train(99:146);
-fold_4_x = x_train(147:194);
-fold_5_x = x_train(195:242);
-
-fold_1_y = y_train(1:49);
-fold_2_y = y_train(50:98);
-fold_3_y = y_train(99:146);
-fold_4_y = y_train(147:194);
-fold_5_y = y_train(195:242);
+folds = cvpartition(y_train, 'KFold', 5);
+cv_error = zeros(size(lambdas, 2));
+for i = 1:size(lambdas, 2)
+    lambda_cv_error = zeros(5, 1);
+    for j = 1:5
+        train_idx = folds.training(j);
+        test_idx = folds.test(j);
+        w = ridge_regression(x_train(train_idx, :), y_train(test_idx),...
+            lambdas(i));
+        lambda_cv_error(j) = mean((y_train(train_idx) - x_train(test_idx, :) * w).^2);
+    end
+    cv_error(i) = mean(lambda_cv_error);
+end
