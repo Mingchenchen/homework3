@@ -38,9 +38,9 @@ for i = 1:size(lambdas, 2)
     cv_error(i) = mean(lambda_cv_error);
 end
 
-[best_lambda, best_idx] = min(cv_error);
+[best_error, best_idx] = min(cv_error);
 
-line([lambdas(best_idx) lambdas(best_idx)], ylim, 'Color', 'g');
+scatter(lambdas(best_idx), best_error, 'xg');
 title('{\bf Training and Testing Error vs. lambda}')
 xlabel('lambda (1e-5 to 10)')
 ylabel('Mean Squared Error')
